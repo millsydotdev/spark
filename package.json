@@ -1,0 +1,57 @@
+{
+  "name": "@millsydotdev/spark",
+  "version": "0.1.0",
+  "description": "Spark Physics Engine — A 3D rigid body physics engine for the web, built on WASM",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./standard": "./dist/spark.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:ts && npm run build:wasm",
+    "build:ts": "tsc",
+    "build:wasm": "bash scripts/docker-build.sh",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "physics",
+    "3d",
+    "wasm",
+    "webassembly",
+    "simd",
+    "rigid-body",
+    "game",
+    "simulation",
+    "spark"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/millsydotdev/spark.git"
+  },
+  "bugs": {
+    "url": "https://github.com/millsydotdev/spark/issues"
+  },
+  "homepage": "https://github.com/millsydotdev/spark#readme",
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
