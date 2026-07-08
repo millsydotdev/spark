@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import type { SparkModule } from '../src/SparkPhysicsWorld';
+import type { SparkModule } from '../src/wasm-loader';
 
 const createMockSparkBody = () => ({
   createBox: vi.fn().mockReturnThis(),

@@ -19,13 +19,13 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:ts && npm run build:wasm",
+    "build": "npm run build:ts",
     "build:ts": "tsc",
     "build:wasm": "bash scripts/docker-build.sh",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run test && npm run build:ts"
   },
   "engines": {
     "node": ">=22"

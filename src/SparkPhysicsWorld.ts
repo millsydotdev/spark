@@ -12,14 +12,9 @@ import type { ITriggerVolume, TriggerVolumeDescriptor } from './interfaces/ITrig
 import { SparkRigidBody } from './SparkRigidBody';
 import { SparkCollider } from './SparkCollider';
 import { SparkTriggerVolume } from './SparkTriggerVolume';
+import { loadSparkModule, type SparkModule } from './wasm-loader';
 
-export interface SparkModule {
-  World: new (config?: any) => any
-  Body: new (...args: any[]) => any
-  Shape: new (...args: any[]) => any
-  threaded: boolean
-  maxWorkers: number
-}
+export { type SparkModule } from './wasm-loader';
 
 export class SparkPhysicsWorld implements IPhysicsWorld {
   private module: any = null;
@@ -54,13 +49,7 @@ export class SparkPhysicsWorld implements IPhysicsWorld {
   get colliderList(): ICollider[] { return [...this.colliderMap.values()]; }
 
   async init(moduleLoader?: () => Promise<SparkModule>): Promise<void> {
-    if (moduleLoader) {
-      this.module = await moduleLoader();
-    } else {
-      const m = await import('./spark.mjs') as any;
-      this.module = await m.default() as SparkModule;
-    }
-
+    this.module = moduleLoader ? await moduleLoader() : await loadSparkModule();
     this.world = new this.module.World({
       gravity: { x: 0, y: this._config.gravity.y, z: 0 },
       enableSleep: true,

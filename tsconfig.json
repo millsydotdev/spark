@@ -4,16 +4,16 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM"],
-    "strict": true,
     "allowJs": true,
+    "strict": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "skipLibCheck": true,
     "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "src/**/*.mjs"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
