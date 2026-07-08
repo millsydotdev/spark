@@ -49,7 +49,7 @@ jobs:
             -e FLAVOURS="standard deluxe" \
             -e TARGET_TYPE=Release \
             emscripten/emsdk:4.0.18 \
-            bash /build/scripts/build-spark.sh
+            bash -c "apt-get update -qq && apt-get install -y -qq ninja-build && bash /build/scripts/build-spark.sh"
 
       - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4
