@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import type { SparkModule } from '../src/SparkPhysicsWorld';
 
 const createMockSparkBody = () => ({
   createBox: vi.fn().mockReturnThis(),
@@ -29,21 +30,19 @@ const createMockSparkWorld = () => ({
   createBody: vi.fn().mockReturnValue(createMockSparkBody()),
   getContactEvents: vi.fn().mockReturnValue({ begin: [], end: [] }),
   getSensorEvents: vi.fn().mockReturnValue({ begin: [], end: [] }),
-  castRayClosest: vi.fn().mockReturnValue(null),
+  castRayClosest: vi.fn().mockReturnValue({ hit: false }),
   destroy: vi.fn(),
 });
 
-let mockSparkWorld: ReturnType<typeof createMockSparkWorld>;
-
-vi.mock('../src/spark.mjs', () => {
-  mockSparkWorld = createMockSparkWorld();
-  const mockModule = {
-    World: vi.fn().mockImplementation(() => mockSparkWorld),
-  };
+function createMockModule(): SparkModule {
   return {
-    default: vi.fn().mockResolvedValue(mockModule),
+    World: vi.fn().mockImplementation(() => createMockSparkWorld()) as any,
+    Body: vi.fn() as any,
+    Shape: vi.fn() as any,
+    threaded: false,
+    maxWorkers: 1,
   };
-});
+}
 
 import { SparkPhysicsWorld } from '../src/SparkPhysicsWorld';
 import { SparkRigidBody } from '../src/SparkRigidBody';
@@ -68,12 +67,12 @@ describe('SparkPhysicsWorld', () => {
   });
 
   it('init() loads Spark WASM and creates world', async () => {
-    await world.init();
+    await world.init(createMockModule);
     expect(world.bodyList).toEqual([]);
   });
 
   it('createRigidBody() creates and returns a body', async () => {
-    await world.init();
+    await world.init(createMockModule);
     const body = world.createRigidBody({
       bodyType: 'dynamic',
       position: { x: 0, y: 10, z: 0 },
@@ -90,17 +89,15 @@ describe('SparkPhysicsWorld', () => {
   });
 
   it('removeRigidBody() removes a body', async () => {
-    await world.init();
-    const body = world.createRigidBody({
-      bodyType: 'dynamic', position: { x: 0, y: 0, z: 0 },
-    });
+    await world.init(createMockModule);
+    const body = world.createRigidBody({ bodyType: 'dynamic', position: { x: 0, y: 0, z: 0 } });
     expect(world.bodyList.length).toBe(1);
     world.removeRigidBody(body);
     expect(world.bodyList.length).toBe(0);
   });
 
   it('createCollider() creates box, sphere, capsule, cylinder colliders', async () => {
-    await world.init();
+    await world.init(createMockModule);
     const body = world.createRigidBody({ bodyType: 'static', position: { x: 0, y: 0, z: 0 } });
     const box = world.createCollider({ shape: { kind: 'box', halfExtents: { x: 1, y: 1, z: 1 } }, friction: 0.5, restitution: 0.2 }, body);
     expect(box.shape.kind).toBe('box');
@@ -116,12 +113,12 @@ describe('SparkPhysicsWorld', () => {
   });
 
   it('step() advances the simulation', async () => {
-    await world.init();
+    await world.init(createMockModule);
     expect(() => world.step(1 / 60)).not.toThrow();
   });
 
   it('castRay() returns null when no hit', async () => {
-    await world.init();
+    await world.init(createMockModule);
     const result = world.castRay({
       origin: { x: 0, y: 0, z: 0 },
       direction: { x: 0, y: -1, z: 0 },
@@ -131,7 +128,7 @@ describe('SparkPhysicsWorld', () => {
   });
 
   it('bodyList and colliderList return current bodies/colliders', async () => {
-    await world.init();
+    await world.init(createMockModule);
     const body = world.createRigidBody({ bodyType: 'dynamic', position: { x: 0, y: 0, z: 0 } });
     world.createCollider({ shape: { kind: 'box', halfExtents: { x: 1, y: 1, z: 1 } } }, body);
     expect(world.bodyList.length).toBe(1);
@@ -139,7 +136,7 @@ describe('SparkPhysicsWorld', () => {
   });
 
   it('destroy() cleans up all resources', async () => {
-    await world.init();
+    await world.init(createMockModule);
     world.createRigidBody({ bodyType: 'dynamic', position: { x: 0, y: 0, z: 0 } });
     world.destroy();
     expect(world.bodyList.length).toBe(0);
@@ -214,7 +211,7 @@ describe('SparkRigidBody', () => {
 describe('SparkRaycastProvider', () => {
   it('castRay() delegates to physics world', async () => {
     const world = new SparkPhysicsWorld();
-    await world.init();
+    await world.init(createMockModule);
     const provider = new SparkRaycastProvider(world);
     const result = provider.castRay({
       origin: { x: 0, y: 0, z: 0 },

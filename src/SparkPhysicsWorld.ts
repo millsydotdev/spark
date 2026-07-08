@@ -13,7 +13,7 @@ import { SparkRigidBody } from './SparkRigidBody';
 import { SparkCollider } from './SparkCollider';
 import { SparkTriggerVolume } from './SparkTriggerVolume';
 
-interface SparkModule {
+export interface SparkModule {
   World: new (config?: any) => any
   Body: new (...args: any[]) => any
   Shape: new (...args: any[]) => any
@@ -53,9 +53,13 @@ export class SparkPhysicsWorld implements IPhysicsWorld {
   get bodyList(): IRigidBody[] { return [...this.rigidBodies.values()]; }
   get colliderList(): ICollider[] { return [...this.colliderMap.values()]; }
 
-  async init(): Promise<void> {
-    const { default: SparkMod } = await import('./spark.mjs');
-    this.module = await SparkMod() as SparkModule;
+  async init(moduleLoader?: () => Promise<SparkModule>): Promise<void> {
+    if (moduleLoader) {
+      this.module = await moduleLoader();
+    } else {
+      const m = await import('./spark.mjs') as any;
+      this.module = await m.default() as SparkModule;
+    }
 
     this.world = new this.module.World({
       gravity: { x: 0, y: this._config.gravity.y, z: 0 },
