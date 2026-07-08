@@ -5,11 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  release:
-    types: [published]
 
 env:
   NODE_VERSION: '22'
+  BOX3D_SHA: '52f1a254ad62a74c9f2a80052f436e2263b95214'
 
 jobs:
   lint-and-test:
@@ -37,6 +36,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fetch Box3D C++ source
+        run: |
+          mkdir -p deps
+          git clone https://github.com/erincatto/box3d.git deps/box3d
+          cd deps/box3d && git checkout ${{ env.BOX3D_SHA }}
+
       - name: Build Spark WASM (standard + deluxe)
         run: |
           docker run --rm \
@@ -54,7 +59,7 @@ jobs:
 
   publish-npm:
     name: Publish to npm
-    if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [lint-and-test, build-wasm]
     runs-on: ubuntu-latest
     permissions:
